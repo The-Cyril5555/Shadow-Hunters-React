@@ -46,6 +46,8 @@ export interface VisibleEvent {
   type: string;
   text: string;
   data: Record<string, unknown>;
+  /** Information secrète que seuls quelques joueurs voient. */
+  secret?: boolean;
 }
 
 export interface PlayerView {
@@ -121,8 +123,9 @@ export function viewFor(s: GameState, viewer: number | null): PlayerView {
 }
 
 export function eventVisible(e: GameEvent, viewer: number | null): VisibleEvent | null {
-  if (e.visibleTo === 'all' || (viewer !== null && e.visibleTo.includes(viewer))) {
-    return { seq: e.seq, type: e.type, text: e.text, data: e.data };
+  if (e.visibleTo === 'all') return { seq: e.seq, type: e.type, text: e.text, data: e.data };
+  if (viewer !== null && e.visibleTo.includes(viewer)) {
+    return { seq: e.seq, type: e.type, text: e.text, data: e.data, secret: true };
   }
   if (e.redacted) return { seq: e.seq, ...e.redacted };
   return null;
