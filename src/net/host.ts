@@ -80,7 +80,9 @@ export class GameHost {
       applyAction(this.state, action, true);
     } catch (e) {
       if (e instanceof EngineError) return e.message;
-      throw e;
+      // Une erreur interne ne doit jamais faire tomber le serveur ni l'onglet hôte.
+      console.error('Erreur du moteur de jeu', e);
+      return 'Erreur interne du moteur de jeu.';
     }
     this.onUpdate();
     this.schedule();
@@ -161,7 +163,7 @@ export class GameHost {
         try {
           applyAction(this.state, next.action, true);
         } catch (e) {
-          if (!(e instanceof EngineError)) throw e;
+          if (!(e instanceof EngineError)) console.error('Erreur du moteur de jeu', e);
           return;
         }
         this.onUpdate();

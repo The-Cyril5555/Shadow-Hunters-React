@@ -1,0 +1,12 @@
+# Déploiement du serveur multijoueur sur Render (offre gratuite).
+services:
+  - type: web
+    name: shadow-hunters-server
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev --ignore-scripts
+    startCommand: npm run server
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
