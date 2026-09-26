@@ -115,3 +115,20 @@ describe('nouvelle partie dans le même salon', () => {
     room.dispose();
   });
 });
+
+describe('robustesse', () => {
+  it('ignore les réglages et actions invalides', () => {
+    const room = new Room({ code: 'Z', settings: { botSpeed: 'instant' } });
+    const a = client(room, 'a');
+    a.say({ t: 'hello', v: PROTOCOL_VERSION, name: 'Alice' });
+    a.say({ t: 'lobby:settings', settings: { pool: 'n\'importe quoi', botSpeed: 'instant' } as never });
+    expect(room.settings.pool).toBe('mixed');
+    for (let i = 0; i < 3; i++) a.say({ t: 'lobby:addBot' });
+    a.say({ t: 'lobby:start' });
+    a.say({ t: 'action', action: { type: 'choose', player: 1, decisionId: 1, optionId: 'roll' } });
+    expect(a.last('error')?.message).toMatch(/mauvais joueur/);
+    a.say({ t: 'action', action: { type: 'bidon', player: 0 } as never });
+    expect(a.last('error')?.message).toBeTruthy();
+    room.dispose();
+  });
+});

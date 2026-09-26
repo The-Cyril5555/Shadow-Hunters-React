@@ -41,6 +41,17 @@ export interface RoomOptions {
   seed?: number;
 }
 
+/** Ne garde que les réglages valides (les messages viennent de clients non fiables). */
+function sanitizeSettings(raw: unknown): Partial<LobbySettings> {
+  const out: Partial<LobbySettings> = {};
+  if (typeof raw !== 'object' || raw === null) return out;
+  const r = raw as Record<string, unknown>;
+  if (r.pool === 'base' || r.pool === 'expansion' || r.pool === 'mixed') out.pool = r.pool;
+  if (r.botLevel === 'easy' || r.botLevel === 'normal' || r.botLevel === 'hard') out.botLevel = r.botLevel;
+  if (r.botSpeed === 'slow' || r.botSpeed === 'normal' || r.botSpeed === 'fast' || r.botSpeed === 'instant') out.botSpeed = r.botSpeed;
+  return out;
+}
+
 const BOT_NAMES = ['Ombre', 'Corbeau', 'Brume', 'Lanterne', 'Chardon', 'Cendre', 'Givre', 'Minuit', 'Sabbat', 'Grimoire'];
 
 export class Room {
@@ -142,7 +153,7 @@ export class Room {
     switch (msg.t) {
       case 'lobby:settings':
         if (!admin) return;
-        this.settings = { ...this.settings, ...msg.settings };
+        this.settings = { ...this.settings, ...sanitizeSettings(msg.settings) };
         this.host?.setSpeed(this.settings.botSpeed);
         this.broadcastLobby();
         this.onChange?.();
@@ -173,7 +184,7 @@ export class Room {
         this.onChange?.();
         return;
       case 'action': {
-        if (!this.host) return;
+        if (!this.host || typeof msg.action !== 'object' || msg.action === null) return;
         const err = this.host.submit(seat, msg.action);
         if (err) this.send(linkId, { t: 'error', message: err });
         return;
@@ -188,7 +199,7 @@ export class Room {
       this.send(linkId, { t: 'error', message: 'Version du jeu différente : rechargez la page.' });
       return;
     }
-    const name = rawName.trim().slice(0, 20) || 'Joueur';
+    const name = (typeof rawName === 'string' ? rawName : '').trim().slice(0, 20) || 'Joueur';
     // Reconnexion à un siège existant.
     const existing = token ? this.seats.findIndex((s) => s.token === token && s.kind === 'human') : -1;
     if (existing >= 0) {
