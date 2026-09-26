@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { BotLevel } from '../../ai/bot';
+import type { BotLevel } from '../../bots/bot';
 import type { CharacterPool } from '../../engine';
 import { connectToServer, hostP2P, joinP2P } from '../session';
 import { useStore } from '../store';

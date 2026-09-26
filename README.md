@@ -70,7 +70,7 @@ src/engine/   moteur de règles pur et déterministe (sans React), état 100 % s
               ├─ flow.ts      étapes du tour et résolution des décisions
               ├─ victory.ts   conditions de victoire
               └─ view.ts      vue filtrée d'un joueur (aucune fuite d'information)
-src/ai/       bots : croyances probabilistes + politique de décision, simulation de parties
+src/bots/     bots : croyances probabilistes + politique de décision, simulation de parties
 src/net/      protocole, GameHost (partie + bots), Room (salon), transports local / PeerJS / WebSocket
 src/ui/       interface React (écrans, plateau, effets, sons)
 server/       serveur Node WebSocket (réutilise src/engine et src/net)

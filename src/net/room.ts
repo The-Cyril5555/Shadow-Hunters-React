@@ -1,5 +1,5 @@
 // Salon : lobby puis partie. Isomorphe (navigateur hôte P2P, serveur Node, solo local).
-import type { BotLevel } from '../ai/bot';
+import type { BotLevel } from '../bots/bot';
 import type { GameState } from '../engine';
 import { GameHost } from './host';
 import {

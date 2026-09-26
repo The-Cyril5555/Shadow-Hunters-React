@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { BotLevel } from '../../ai/bot';
+import type { BotLevel } from '../../bots/bot';
 import { FACTION_COUNTS, type CharacterPool } from '../../engine';
 import type { BotSpeed } from '../../net/protocol';
 import { startSolo } from '../session';

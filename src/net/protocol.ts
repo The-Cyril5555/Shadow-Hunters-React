@@ -1,5 +1,5 @@
 // Protocole entre un client et l'hôte d'une partie (même format en local, en P2P et via le serveur).
-import type { BotLevel } from '../ai/bot';
+import type { BotLevel } from '../bots/bot';
 import type { Action, CharacterPool, PlayerView, VisibleEvent } from '../engine';
 
 export const PROTOCOL_VERSION = 1;

@@ -1,6 +1,6 @@
 // Hôte d'une partie : détient l'état de référence, applique les actions, pilote les bots.
 // Il tourne à l'identique dans le navigateur (solo, P2P) et sur le serveur Node.
-import { Bot, randomBotConfig, type BotLevel } from '../ai/bot';
+import { Bot, randomBotConfig, type BotLevel } from '../bots/bot';
 import {
   COVER_KINDS, EngineError, applyAction, createGame, eventsFor, viewFor,
   type Action, type CharacterPool, type GameState, type PlayerView, type VisibleEvent,
