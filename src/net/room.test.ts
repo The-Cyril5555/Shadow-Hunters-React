@@ -92,3 +92,26 @@ describe('salon et hôte', () => {
     room.dispose();
   });
 });
+
+describe('nouvelle partie dans le même salon', () => {
+  it('l\'administrateur peut relancer après la fin', () => {
+    const room = new Room({ code: 'R', settings: { botSpeed: 'instant' }, seed: 3 });
+    const a = client(room, 'a');
+    a.say({ t: 'hello', v: PROTOCOL_VERSION, name: 'Alice' });
+    for (let i = 0; i < 4; i++) a.say({ t: 'lobby:addBot' });
+    a.say({ t: 'lobby:start' });
+    for (let g = 0; g < 3000 && !room.host!.state.finished; g++) {
+      const v = a.last('game')!.view;
+      if (v.pending?.player === 0 && v.pending.options) {
+        a.say({ t: 'action', action: { type: 'choose', player: 0, decisionId: v.pending.id, optionId: v.pending.options[0].id } });
+      }
+    }
+    expect(room.host!.state.finished).toBe(true);
+    a.say({ t: 'lobby:restart' });
+    expect(room.started).toBe(false);
+    expect(a.last('lobby')!.lobby.seats).toHaveLength(5);
+    a.say({ t: 'lobby:start' });
+    expect(room.started).toBe(true);
+    room.dispose();
+  });
+});

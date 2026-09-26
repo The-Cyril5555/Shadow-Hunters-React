@@ -24,7 +24,7 @@ export function GameOver({ view, onMenu, onReplay, onClose }: { view: PlayerView
         })}
       </div>
       <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
-        {onReplay && <button className="btn btn-primary" onClick={onReplay}>Rejouer</button>}
+        {onReplay && <button className="btn btn-primary" onClick={onReplay}>Nouvelle partie</button>}
         <button className="btn" onClick={onClose}>Voir le plateau</button>
         <button className="btn btn-ghost" onClick={onMenu}>Menu principal</button>
       </div>

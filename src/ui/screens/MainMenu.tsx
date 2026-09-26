@@ -14,7 +14,7 @@ export function MainMenu() {
         {hasSave && (
           <button className="btn btn-primary" onClick={() => resumeSolo() || discardSave()}>
             Reprendre la partie
-            <span className="sub" style={{ color: '#5a3a10' }}>Partie solo sauvegardée</span>
+            <span className="sub" style={{ color: '#5a3a10' }}>Sauvegarde automatique</span>
           </button>
         )}
         <button className={`btn${hasSave ? '' : ' btn-primary'}`} onClick={() => go('solo')}>

@@ -58,7 +58,7 @@ export function Lobby() {
           ))}
         </div>
         <small className="muted">
-          {n} / {MAX_SEATS} joueurs{n >= MIN_SEATS ? ` · ${counts.hunter} Hunters, ${counts.shadow} Shadows, ${counts.neutral} Neutres` : ` · il en faut au moins ${MIN_SEATS}`}
+          {n} / {MAX_SEATS} joueurs{n >= MIN_SEATS ? ` · ${counts.hunter} Hunters, ${counts.shadow} Shadows, ${counts.neutral} Neutre${counts.neutral > 1 ? 's' : ''}` : ` · il en faut au moins ${MIN_SEATS}`}
         </small>
         {admin ? (
           <>

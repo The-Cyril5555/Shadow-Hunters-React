@@ -1,10 +1,23 @@
 // Pair-à-pair WebRTC via PeerJS : l'onglet de l'hôte fait tourner la partie.
-import Peer, { type DataConnection } from 'peerjs';
+import Peer, { type DataConnection, type PeerOptions } from 'peerjs';
 import type { Room } from '../room';
 import { isClientMessage, randomCode, type ClientMessage, type HostMessage } from '../protocol';
 import type { Connection } from './connection';
 
 const PREFIX = 'shadow-hunters-react-';
+
+/** Service de mise en relation : PeerJS public par défaut, configurable pour l'auto-hébergement. */
+function peerOptions(): PeerOptions {
+  const env = import.meta.env;
+  const options: PeerOptions = { debug: 0 };
+  if (env.VITE_PEER_HOST) {
+    options.host = env.VITE_PEER_HOST as string;
+    options.port = Number(env.VITE_PEER_PORT ?? 443);
+    options.path = (env.VITE_PEER_PATH as string | undefined) ?? '/';
+    options.secure = env.VITE_PEER_SECURE !== 'false';
+  }
+  return options;
+}
 
 export interface PeerHost {
   code: string;
@@ -29,7 +42,7 @@ export function hostPeerRoom(makeRoom: (code: string) => Room): Promise<PeerHost
     let attempts = 0;
     const tryOpen = () => {
       const code = randomCode();
-      const peer = new Peer(PREFIX + code, { debug: 0 });
+      const peer = new Peer(PREFIX + code, peerOptions());
       let room: Room | null = null;
       peer.on('open', () => {
         room = makeRoom(code);
@@ -67,7 +80,7 @@ export function hostPeerRoom(makeRoom: (code: string) => Room): Promise<PeerHost
 /** Rejoint un salon P2P à partir de son code. */
 export function joinPeerRoom(code: string): Promise<Connection> {
   return new Promise((resolve, reject) => {
-    const peer = new Peer({ debug: 0 });
+    const peer = new Peer(peerOptions());
     const listeners = new Set<(msg: HostMessage) => void>();
     const closeListeners = new Set<(reason: string) => void>();
     let settled = false;
