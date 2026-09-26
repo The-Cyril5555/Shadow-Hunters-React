@@ -4,6 +4,7 @@ import { Room, type RoomSnapshot } from '../net/room';
 import { PROTOCOL_VERSION, randomCode, type ClientMessage, type HostMessage, type LobbySettings } from '../net/protocol';
 import type { Connection } from '../net/transports/connection';
 import { connectLocal } from '../net/transports/local';
+import { enqueueFrame, resetDirector } from './director';
 import { KEYS, load, remove, save } from './storage';
 import { useStore, type SessionMode } from './store';
 
@@ -36,20 +37,22 @@ function handle(msg: HostMessage): void {
     case 'lobby':
       if (!msg.lobby.started && st.screen === 'game') {
         // L'hôte a relancé une partie : retour au salon.
-        useStore.setState({ lobby: msg.lobby, seats: msg.lobby.seats, screen: 'lobby', view: null, log: [], fxFrom: 0 });
+        resetDirector();
+        useStore.setState({ lobby: msg.lobby, seats: msg.lobby.seats, screen: 'lobby', view: null, log: [] });
         return;
       }
       useStore.setState({ lobby: msg.lobby, seats: msg.lobby.seats, ...(msg.lobby.started && st.screen === 'lobby' ? { screen: 'game' } : {}) });
       return;
     case 'game': {
-      const log = msg.full ? msg.events : [...st.log, ...msg.events];
-      useStore.setState({
-        view: msg.view,
-        seats: msg.seats,
-        log,
-        ...(msg.full ? { fxFrom: msg.view.lastSeq } : {}),
-        ...(st.screen === 'lobby' || st.screen === 'multi' || st.screen === 'solo' ? { screen: 'game' } : {}),
-      });
+      const toGame = st.screen === 'lobby' || st.screen === 'multi' || st.screen === 'solo' ? { screen: 'game' as const } : {};
+      if (msg.full) {
+        // Synchronisation complète (début de partie, reconnexion) : pas d'animation.
+        resetDirector();
+        useStore.setState({ view: msg.view, seats: msg.seats, log: msg.events, ...toGame });
+        return;
+      }
+      if (Object.keys(toGame).length) useStore.setState(toGame);
+      enqueueFrame({ view: msg.view, events: msg.events, seats: msg.seats });
       return;
     }
     case 'error':
@@ -193,11 +196,12 @@ export function leave(): void {
   persist();
   conn?.close();
   conn = null;
+  resetDirector();
   if (closeHost) closeHost();
   else room?.dispose();
   closeHost = null;
   room = null;
-  useStore.setState({ mode: null, code: null, seat: null, lobby: null, seats: [], view: null, log: [], fxFrom: 0, busy: null });
+  useStore.setState({ mode: null, code: null, seat: null, lobby: null, seats: [], view: null, log: [], busy: null });
 }
 
 export function isHostingLocally(): boolean {

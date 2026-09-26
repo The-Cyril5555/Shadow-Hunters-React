@@ -3,9 +3,11 @@ import type { DeckId, PlayerView } from '../../engine';
 import { CardBack, CardFace } from '../components/CardFace';
 import { DECK_STYLE } from '../theme';
 import { Modal } from '../components/Modal';
+import { useFx } from '../fx';
 
 export function Decks({ view }: { view: PlayerView }) {
   const [open, setOpen] = useState<DeckId | null>(null);
+  const deckFx = useFx((s) => s.deckFx);
   return (
     <div className="panel decks">
       {(['hermit', 'white', 'black'] as DeckId[]).map((d) => {
@@ -14,7 +16,7 @@ export function Decks({ view }: { view: PlayerView }) {
         return (
           <div className="deck" key={d}>
             <span className="tag">{DECK_STYLE[d].label}</span>
-            <div className="pile" title={`${deck.drawCount} carte(s) dans la pioche`}>
+            <div id={`deck-${d}`} className={`pile${deckFx[d] ? ` fx-${deckFx[d]}` : ''}`} title={`${deck.drawCount} carte(s) dans la pioche`}>
               <CardBack deck={d} empty={deck.drawCount === 0} />
             </div>
             <span className="count">Pioche {deck.drawCount}<br />Défausse {deck.discardCount}</span>

@@ -52,7 +52,7 @@ export type HostMessage =
 
 export const DEFAULT_SETTINGS: LobbySettings = { pool: 'mixed', botLevel: 'normal', botSpeed: 'normal' };
 
-export const BOT_DELAY: Record<BotSpeed, number> = { slow: 1700, normal: 1000, fast: 450, instant: 0 };
+export const BOT_DELAY: Record<BotSpeed, number> = { slow: 2600, normal: 1600, fast: 750, instant: 0 };
 export const COVER_DELAY: Record<BotSpeed, number> = { slow: 700, normal: 450, fast: 200, instant: 0 };
 
 export function randomToken(): string {

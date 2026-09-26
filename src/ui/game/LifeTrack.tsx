@@ -1,3 +1,4 @@
+import { LayoutGroup, motion } from 'motion/react';
 import { CHARACTERS, type PublicPlayer } from '../../engine';
 import { playerColor } from '../theme';
 
@@ -12,6 +13,7 @@ for (const c of Object.values(CHARACTERS)) {
 export function LifeTrack({ players }: { players: PublicPlayer[] }) {
   const rows = Array.from({ length: 15 }, (_, i) => i);
   return (
+    <LayoutGroup id="life">
     <div className="life" aria-label="Piste des dégâts">
       <h3>DÉGÂTS</h3>
       {rows.map((n) => {
@@ -22,8 +24,10 @@ export function LifeTrack({ players }: { players: PublicPlayer[] }) {
             <span className="n">{n}</span>
             <span className="cubes">
               {here.map((p) => (
-                <span
+                <motion.span
                   key={p.id}
+                  layoutId={`cube-${p.id}`}
+                  transition={{ type: 'spring', stiffness: 220, damping: 24 }}
                   className="cube"
                   style={{ ['--pc' as string]: playerColor(p.id), opacity: p.alive ? 1 : 0.4 }}
                   title={`${p.name} : ${p.damage} dégât${p.damage > 1 ? 's' : ''}${p.alive ? '' : ' (mort)'}`}
@@ -37,5 +41,6 @@ export function LifeTrack({ players }: { players: PublicPlayer[] }) {
         );
       })}
     </div>
+    </LayoutGroup>
   );
 }
