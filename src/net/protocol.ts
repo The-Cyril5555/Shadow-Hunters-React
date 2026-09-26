@@ -37,6 +37,7 @@ export type ClientMessage =
   | { t: 'lobby:addBot' }
   | { t: 'lobby:removeSeat'; index: number }
   | { t: 'lobby:start' }
+  | { t: 'lobby:restart' }
   | { t: 'action'; action: Action }
   | { t: 'resync' }
   | { t: 'ping' };

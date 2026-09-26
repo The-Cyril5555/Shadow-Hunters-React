@@ -3,6 +3,7 @@ import type { Option, PlayerView } from '../../engine';
 import type { SeatInfo } from '../../net/protocol';
 import { CardFace } from '../components/CardFace';
 import { play } from '../sound';
+import { playerColor } from '../theme';
 
 const GROUP_TITLES: Record<string, string> = {
   move: 'Déplacement',
@@ -24,7 +25,7 @@ interface Props {
   onChoose(option: Option): void;
 }
 
-function OptionButton({ o, onChoose }: { o: Option; onChoose(o: Option): void }) {
+function OptionButton({ o, onChoose, label }: { o: Option; onChoose(o: Option): void; label?: string }) {
   const [armed, setArmed] = useState(false);
   const click = () => {
     if (o.reveal && !armed) {
@@ -36,7 +37,7 @@ function OptionButton({ o, onChoose }: { o: Option; onChoose(o: Option): void })
   };
   return (
     <button className={`btn${o.reveal ? ' btn-reveal' : ''}${o.group === 'skip' || o.group === 'end' ? ' btn-ghost' : ''}`} onClick={click}>
-      {armed ? 'Confirmer : vous serez révélé' : o.label}
+      {armed ? 'Confirmer : vous serez révélé' : label ?? o.label}
     </button>
   );
 }
@@ -71,6 +72,16 @@ export function DecisionPanel({ view, seats, focus, onFocus, onChoose }: Props) 
     else groups.push([g, [o]]);
   }
   const clickable = d.options.some((o) => o.target !== undefined || o.area !== undefined);
+  // Beaucoup d'options visant des joueurs (Forêt hantée, Sanctuaire…) : une ligne par joueur.
+  const targeted = options.filter((o) => o.target !== undefined);
+  const byTarget = new Map<number, Option[]>();
+  for (const o of targeted) byTarget.set(o.target as number, [...(byTarget.get(o.target as number) ?? []), o]);
+  const compact = focus === null && targeted.length >= 8 && byTarget.size < targeted.length;
+  const shortLabel = (o: Option) => {
+    const name = view.players[o.target as number]?.name ?? '';
+    const cleaned = o.label.replace(` à ${name}`, '').replace(` ${name}`, '').replace('à vous-même', '').trim();
+    return cleaned || GROUP_TITLES[o.group ?? ''] || o.label;
+  };
   return (
     <div className="panel decision" aria-live="polite">
       <div className="with-card">
@@ -83,6 +94,19 @@ export function DecisionPanel({ view, seats, focus, onFocus, onChoose }: Props) 
               <button className="btn btn-small btn-ghost" onClick={() => onFocus(null)}>← Toutes les options</button>
             </div>
           )}
+          {compact ? (
+            <div className="target-rows">
+              {[...byTarget.entries()].map(([t, opts]) => (
+                <div className="target-row" key={t}>
+                  <span className="who"><span className="seat-num" style={{ ['--pc' as string]: playerColor(t) }}>{t + 1}</span>{t === view.me ? 'Vous' : view.players[t].name}</span>
+                  {opts.map((o) => <OptionButton key={o.id} o={o} onChoose={onChoose} label={shortLabel(o)} />)}
+                </div>
+              ))}
+              <div className="options">
+                {options.filter((o) => o.target === undefined).map((o) => <OptionButton key={o.id} o={o} onChoose={onChoose} />)}
+              </div>
+            </div>
+          ) : (
           <div className="options">
             {groups.map(([g, opts]) => (
               <div key={g} style={{ display: 'contents' }}>
@@ -91,6 +115,7 @@ export function DecisionPanel({ view, seats, focus, onFocus, onChoose }: Props) 
               </div>
             ))}
           </div>
+          )}
         </div>
       </div>
     </div>

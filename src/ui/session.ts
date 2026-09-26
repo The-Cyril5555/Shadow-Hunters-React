@@ -34,6 +34,11 @@ function handle(msg: HostMessage): void {
       return;
     }
     case 'lobby':
+      if (!msg.lobby.started && st.screen === 'game') {
+        // L'hôte a relancé une partie : retour au salon.
+        useStore.setState({ lobby: msg.lobby, seats: msg.lobby.seats, screen: 'lobby', view: null, log: [], fxFrom: 0 });
+        return;
+      }
       useStore.setState({ lobby: msg.lobby, seats: msg.lobby.seats, ...(msg.lobby.started && st.screen === 'lobby' ? { screen: 'game' } : {}) });
       return;
     case 'game': {
@@ -78,21 +83,29 @@ function hello(code: string, token = tokens()[code]): void {
   send({ t: 'hello', v: PROTOCOL_VERSION, name, token });
 }
 
-function scheduleSave(): void {
-  if (!room || saveTimer) return;
-  saveTimer = setTimeout(() => {
-    saveTimer = null;
-    if (!room) return;
-    const snap = room.snapshot();
-    if (snap.state?.finished) {
-      remove(KEYS.save);
-      useStore.setState({ hasSave: false });
-    } else if (snap.state) {
-      save(KEYS.save, snap);
-      useStore.setState({ hasSave: true });
-    }
-  }, 400);
+/** Écrit (ou efface, si la partie est finie) la sauvegarde du solo. */
+function persist(): void {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = null;
+  if (!room || useStore.getState().mode !== 'solo') return;
+  const snap = room.snapshot();
+  if (!snap.state) return;
+  if (snap.state.finished) {
+    remove(KEYS.save);
+    useStore.setState({ hasSave: false });
+  } else {
+    save(KEYS.save, snap);
+    useStore.setState({ hasSave: true });
+  }
 }
+
+function scheduleSave(): void {
+  if (!room) return;
+  if (room.host?.state.finished) return persist();
+  if (!saveTimer) saveTimer = setTimeout(persist, 400);
+}
+
+if (typeof window !== 'undefined') window.addEventListener('pagehide', persist);
 
 // ─── Solo ───────────────────────────────────────────────────
 
@@ -177,13 +190,7 @@ function endSession(reason?: string): void {
 export function leave(): void {
   unsubscribe.forEach((u) => u());
   unsubscribe = [];
-  if (saveTimer) {
-    clearTimeout(saveTimer);
-    saveTimer = null;
-    if (room?.snapshot().state && !room.snapshot().state?.finished && useStore.getState().mode === 'solo') {
-      save(KEYS.save, room.snapshot());
-    }
-  }
+  persist();
   conn?.close();
   conn = null;
   if (closeHost) closeHost();

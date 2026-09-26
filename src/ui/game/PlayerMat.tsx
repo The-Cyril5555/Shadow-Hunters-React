@@ -12,6 +12,7 @@ interface Props {
   deciding: boolean;
   selectable: boolean;
   note?: Note;
+  finished?: boolean;
   onSelect?: () => void;
 }
 
@@ -24,7 +25,7 @@ export function EquipChip({ card }: { card: string }) {
   );
 }
 
-export function PlayerMat({ player: p, seat, me, active, deciding, selectable, note, onSelect }: Props) {
+export function PlayerMat({ player: p, seat, me, active, deciding, selectable, note, finished, onSelect }: Props) {
   const c = p.character ? CHARACTERS[p.character] : null;
   const hp = c?.hp;
   const classes = ['mat', me && 'me', active && 'active', deciding && 'deciding', !p.alive && 'dead', selectable && 'selectable']
@@ -48,7 +49,7 @@ export function PlayerMat({ player: p, seat, me, active, deciding, selectable, n
         </div>
         <div className="line">
           {c ? <>{c.name} <FactionChip id={c.id} /></> : <span>Identité cachée</span>}
-          {c && !me && !p.revealed && p.alive && <span className="tag" title="Vous avez vu sa carte en secret (Prédiction)">vu</span>}
+          {c && !me && !p.revealed && p.alive && !finished && <span className="tag" title="Vous avez vu sa carte en secret (Prédiction)">vu</span>}
         </div>
         <div className="line">
           <span className="hp">{p.damage} / {hp ?? '?'}</span>

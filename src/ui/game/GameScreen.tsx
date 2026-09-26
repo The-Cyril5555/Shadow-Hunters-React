@@ -3,7 +3,7 @@ import type { AreaId, Option } from '../../engine';
 import type { BotSpeed } from '../../net/protocol';
 import { Modal } from '../components/Modal';
 import { RulesContent } from '../screens/RulesContent';
-import { act, isHostingLocally, leave, setBotSpeed, startSolo } from '../session';
+import { act, isHostingLocally, leave, send, setBotSpeed, startSolo } from '../session';
 import { useStore } from '../store';
 import { Board } from './Board';
 import { DecisionPanel } from './DecisionPanel';
@@ -36,6 +36,7 @@ export function GameScreen() {
   const lobby = useStore((s) => s.lobby);
   const mode = useStore((s) => s.mode);
   const go = useStore((s) => s.go);
+  const seat = useStore((s) => s.seat);
   const [focus, setFocus] = useState<number | null>(null);
   const [modal, setModal] = useState<'rules' | 'notebook' | 'quit' | null>(null);
   const [overClosed, setOverClosed] = useState(false);
@@ -86,7 +87,9 @@ export function GameScreen() {
   };
   const replay = mode === 'solo'
     ? () => startSolo(view.playerCount, lobby?.settings ?? { pool: view.pool, botLevel: 'normal', botSpeed: settings.speed })
-    : undefined;
+    : lobby && seat === lobby.adminSeat
+      ? () => send({ t: 'lobby:restart' })
+      : undefined;
 
   return (
     <div className={`game${settings.reducedMotion ? ' reduced-motion' : ''}`}>
@@ -130,6 +133,7 @@ export function GameScreen() {
             deciding={p.id === deciding}
             selectable={targetOptions.has(p.id)}
             note={notes[p.id]}
+            finished={view.finished}
             onSelect={() => pickTarget(p.id)}
           />
         ))}

@@ -160,6 +160,18 @@ export class Room {
         if (this.seats.length < MIN_SEATS) return this.send(linkId, { t: 'error', message: `Il faut au moins ${MIN_SEATS} joueurs (ajoutez des bots).` });
         this.startGame();
         return;
+      case 'lobby:restart':
+        // Nouvelle partie dans le même salon, une fois la précédente terminée.
+        if (!admin || !this.host?.state.finished) return;
+        this.host.dispose();
+        this.host = null;
+        this.seed = Math.floor(Math.random() * 2 ** 31);
+        // Les places des humains partis sont libérées.
+        this.seats = this.seats.filter((s, i) => s.kind === 'bot' || s.linkId !== null || i === 0);
+        this.reindexLinks();
+        this.broadcastLobby();
+        this.onChange?.();
+        return;
       case 'action': {
         if (!this.host) return;
         const err = this.host.submit(seat, msg.action);

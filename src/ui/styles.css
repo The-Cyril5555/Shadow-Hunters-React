@@ -258,6 +258,8 @@ input:focus, select:focus { outline: none; border-color: var(--gold-2); }
   gap: clamp(12px, 2vw, 28px) clamp(14px, 3vw, 44px);
   padding: 18px 14px 14px;
   position: relative;
+  container-type: size;
+  overflow: hidden;
 }
 /* Les six lieux forment un cercle : la zone du bas se lit de droite à gauche. */
 .board .zone:nth-child(3) { grid-column: 1 / span 2; justify-self: center; flex-direction: row-reverse; }
@@ -273,7 +275,8 @@ input:focus, select:focus { outline: none; border-color: var(--gold-2); }
 .zone-label { position: absolute; top: -9px; left: 10px; background: var(--bg-2); padding: 0 6px; font-family: var(--pixel); font-size: 8px; color: var(--dim); }
 .area {
   position: relative;
-  width: clamp(92px, 9.5vw, 128px);
+  /* Deux rangées de cartes doivent tenir dans la hauteur du plateau. */
+  width: max(64px, min(128px, 9.5vw, calc(29cqh - 19px)));
   aspect-ratio: 100 / 160;
   border: 3px solid #2a2046;
   border-radius: 5px;
@@ -404,6 +407,9 @@ input:focus, select:focus { outline: none; border-color: var(--gold-2); }
 .decision .group-title { font-family: var(--pixel); font-size: 9px; color: var(--muted); width: 100%; margin-top: 4px; }
 .decision.waiting { color: var(--muted); align-items: center; justify-content: center; flex-direction: row; }
 .decision .with-card { display: flex; gap: 14px; align-items: flex-start; }
+.target-rows { display: grid; gap: 6px; }
+.target-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.target-row .who { min-width: 130px; display: flex; gap: 6px; align-items: center; font-weight: 600; }
 
 .me-panel { padding: 12px; display: flex; gap: 14px; align-items: flex-start; overflow: auto; max-height: 36vh; }
 .me-panel .actions { display: flex; flex-direction: column; gap: 6px; min-width: 150px; }
@@ -485,6 +491,7 @@ input:focus, select:focus { outline: none; border-color: var(--gold-2); }
   }
   .side-col { flex-direction: row; }
   .side-col > * { flex: 1; }
+  .board { container-type: normal; overflow: visible; }
   .journal { max-height: 260px; }
 }
 
@@ -507,7 +514,7 @@ input:focus, select:focus { outline: none; border-color: var(--gold-2); }
   .life { height: auto; }
   .life-row { min-height: 18px; }
   .side-col { flex-direction: column; }
-  .board { padding: 14px 6px 8px; gap: 12px 8px; }
+  .board { padding: 14px 6px 8px; gap: 12px 8px; container-type: normal; overflow: visible; }
   .area { width: min(20vw, 96px); }
   .area .area-name { font-size: 10px; }
   .char-card img { width: 64px; height: 96px; }
