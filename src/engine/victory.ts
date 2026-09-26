@@ -1,6 +1,6 @@
 import { CHARACTERS } from './data/characters';
 import { cardType, DAVID_CARDS } from './data/cards';
-import { emit, factionOf } from './helpers';
+import { discard, emit, factionOf } from './helpers';
 import type { GameState, PlayerState } from './types';
 
 function facts(s: GameState) {
@@ -74,6 +74,11 @@ export function checkVictory(s: GameState): boolean {
   const reason = victoryTriggered(s);
   if (!reason) return false;
   s.finished = true;
+  // Les cartes encore en cours de résolution rejoignent leur défausse.
+  for (const st of s.stack) if (st.t === 'discard') discard(s, st.card);
+  if (s.pending && (s.pending.kind === 'hermit_give' || s.pending.kind === 'hermit_respond')) {
+    discard(s, s.pending.ctx.card as string);
+  }
   s.pending = null;
   s.stack = [];
   s.winners = computeWinners(s);
