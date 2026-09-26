@@ -23,6 +23,8 @@ interface Props {
   focus: number | null;
   onFocus(target: number | null): void;
   onChoose(option: Option): void;
+  /** Des actions sont encore en train d'être animées. */
+  waiting?: boolean;
 }
 
 function OptionButton({ o, onChoose, label }: { o: Option; onChoose(o: Option): void; label?: string }) {
@@ -42,8 +44,11 @@ function OptionButton({ o, onChoose, label }: { o: Option; onChoose(o: Option): 
   );
 }
 
-export function DecisionPanel({ view, seats, focus, onFocus, onChoose }: Props) {
+export function DecisionPanel({ view, seats, focus, onFocus, onChoose, waiting }: Props) {
   const d = view.pending;
+  if (waiting && !view.finished) {
+    return <div className="panel decision waiting" aria-live="polite"><span className="spinner" /> Action en cours…</div>;
+  }
   if (view.finished) {
     return <div className="panel decision waiting">La partie est terminée.</div>;
   }

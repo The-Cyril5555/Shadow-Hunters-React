@@ -18,6 +18,11 @@ Adaptation numérique du jeu de plateau **Shadow Hunters**, aussi fidèle que po
 - **Multijoueur**, au choix :
   - **pair-à-pair (WebRTC)**, sans serveur : l'onglet de l'hôte fait tourner la partie ;
   - **serveur Node WebSocket** : plus robuste, avec reconnexion. Un bot remplace un joueur déconnecté en attendant son retour.
+- **Chaque action mise en scène** : les actions sont rejouées une par une avant que le plateau ne se mette à jour.
+  - Flèches d'attaque et de ciblage, cartes qui volent de la pioche au joueur ou d'un joueur à l'autre.
+  - Secousses et bulles de dégâts ou de soin, lueur du lieu d'arrivée, portrait retourné lors d'une révélation.
+  - Légende de l'action en cours et étapes du tour (Début, Déplacement, Lieu, Attaque, Fin).
+  - Le rythme s'adapte à la vitesse choisie, et le bouton « Passer » affiche directement le résultat.
 - **Interface pixel art** :
   - plateau en triangle et piste des dégâts de 0 à 14 comme sur le plateau ;
   - dés, cartes et révélations animés, avec effets sonores ;

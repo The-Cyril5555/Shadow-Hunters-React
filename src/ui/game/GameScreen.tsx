@@ -8,7 +8,8 @@ import { useStore } from '../store';
 import { Board } from './Board';
 import { DecisionPanel } from './DecisionPanel';
 import { Decks } from './Decks';
-import { FxLayer } from './FxLayer';
+import { FxOverlayGlobal, FxStage } from './FxLayer';
+import { useFx } from '../fx';
 import { GameOver } from './GameOver';
 import { Journal } from './Journal';
 import { LifeTrack } from './LifeTrack';
@@ -16,13 +17,24 @@ import { MyPanel } from './MyPanel';
 import { Notebook } from './Notebook';
 import { PlayerMat } from './PlayerMat';
 
-const PHASES: Record<string, string> = {
-  start: 'début du tour',
-  move: 'déplacement',
-  area: 'action du lieu',
-  attack: 'attaque',
-  end: 'fin du tour',
-};
+const PHASES: [string, string][] = [
+  ['start', 'Début'],
+  ['move', 'Déplacement'],
+  ['area', 'Lieu'],
+  ['attack', 'Attaque'],
+  ['end', 'Fin'],
+];
+
+function PhaseSteps({ phase }: { phase: string }) {
+  const index = PHASES.findIndex(([k]) => k === phase);
+  return (
+    <ol className="phase-steps" aria-label="Étapes du tour">
+      {PHASES.map(([k, label], i) => (
+        <li key={k} className={i === index ? 'current' : i < index ? 'done' : ''}>{label}</li>
+      ))}
+    </ol>
+  );
+}
 
 const SPEEDS: [BotSpeed, string][] = [['slow', 'Lente'], ['normal', 'Normale'], ['fast', 'Rapide']];
 
@@ -30,7 +42,7 @@ export function GameScreen() {
   const view = useStore((s) => s.view);
   const log = useStore((s) => s.log);
   const seats = useStore((s) => s.seats);
-  const fxFrom = useStore((s) => s.fxFrom);
+  const animating = useFx((s) => s.animating);
   const notes = useStore((s) => s.notes);
   const settings = useStore((s) => s.settings);
   const lobby = useStore((s) => s.lobby);
@@ -50,7 +62,7 @@ export function GameScreen() {
   const pending = view?.pending;
   const me = view?.me;
   const { areaOptions, targetOptions } = useMemo(() => {
-    const mine = pending && pending.player === me && pending.options ? pending.options : [];
+    const mine = pending && pending.player === me && pending.options && !animating ? pending.options : [];
     const areaOptions = new Map<AreaId, Option>();
     const targetOptions = new Map<number, Option[]>();
     for (const o of mine) {
@@ -58,7 +70,7 @@ export function GameScreen() {
       if (o.target !== undefined) targetOptions.set(o.target, [...(targetOptions.get(o.target) ?? []), o]);
     }
     return { areaOptions, targetOptions };
-  }, [pending, me]);
+  }, [pending, me, animating]);
 
   if (!view) {
     return <div className="screen"><span className="spinner" /> Chargement de la partie…</div>;
@@ -100,7 +112,7 @@ export function GameScreen() {
             Au tour de <strong>{active?.name}</strong>
             {view.turn.active === view.me ? ' (vous)' : ''}
           </span>
-          <span className="phase">{PHASES[view.turn.phase]}</span>
+          <PhaseSteps phase={view.turn.phase} />
           {view.turn.extraTurns > 0 && <span className="tag">+{view.turn.extraTurns} tour(s)</span>}
           {lobby && mode !== 'solo' && <span className="tag">Salon {lobby.code}</span>}
         </div>
@@ -150,7 +162,7 @@ export function GameScreen() {
           onTarget={pickTarget}
           reducedMotion={settings.reducedMotion}
         />
-        <FxLayer view={view} log={log} fxFrom={fxFrom} reducedMotion={settings.reducedMotion} />
+        <FxStage />
       </div>
 
       <div className="side-col">
@@ -160,10 +172,11 @@ export function GameScreen() {
 
       <div className="me-row">
         <MyPanel view={view} />
-        <DecisionPanel view={view} seats={seats} focus={focus} onFocus={setFocus} onChoose={choose} />
+        <DecisionPanel view={view} seats={seats} focus={focus} onFocus={setFocus} onChoose={choose} waiting={animating} />
       </div>
 
-      {view.finished && !overClosed && (
+      <FxOverlayGlobal />
+      {view.finished && !overClosed && !animating && (
         <GameOver view={view} onMenu={quit} onReplay={replay} onClose={() => setOverClosed(true)} />
       )}
       {modal === 'rules' && <Modal title="Règles" onClose={() => setModal(null)} wide><RulesContent /></Modal>}

@@ -1,6 +1,8 @@
+import { AnimatePresence, motion } from 'motion/react';
 import { CHARACTERS, cardDef, type PublicPlayer } from '../../engine';
 import type { SeatInfo } from '../../net/protocol';
 import { FactionChip } from '../components/CharacterCard';
+import { useFx } from '../fx';
 import type { Note } from '../store';
 import { FACTION_COLORS, FACTION_LABEL, characterImage, playerColor } from '../theme';
 
@@ -19,16 +21,23 @@ interface Props {
 export function EquipChip({ card }: { card: string }) {
   const def = cardDef(card);
   return (
-    <span className={`equip-chip ${def.deck}`} title={`${def.name} : ${def.text}`}>
+    <motion.span
+      className={`equip-chip ${def.deck}`}
+      title={`${def.name} : ${def.text}`}
+      initial={{ scale: 0.3, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 380, damping: 20 }}
+    >
       {def.name}
-    </span>
+    </motion.span>
   );
 }
 
 export function PlayerMat({ player: p, seat, me, active, deciding, selectable, note, finished, onSelect }: Props) {
   const c = p.character ? CHARACTERS[p.character] : null;
   const hp = c?.hp;
-  const classes = ['mat', me && 'me', active && 'active', deciding && 'deciding', !p.alive && 'dead', selectable && 'selectable']
+  const pulse = useFx((s) => s.pulses[p.id]);
+  const classes = ['mat', me && 'me', active && 'active', deciding && 'deciding', !p.alive && 'dead', selectable && 'selectable', pulse && `fx-${pulse}`]
     .filter(Boolean).join(' ');
   return (
     <div
@@ -41,7 +50,21 @@ export function PlayerMat({ player: p, seat, me, active, deciding, selectable, n
       onKeyDown={(e) => selectable && (e.key === 'Enter' || e.key === ' ') && onSelect?.()}
       aria-label={`${p.name}${c ? `, ${c.name}` : ''}, ${p.damage} dégâts${selectable ? ', cliquez pour choisir' : ''}`}
     >
-      <img className="portrait" src={characterImage(p.character)} alt={c ? c.name : 'Personnage caché'} />
+      <div className="portrait-wrap">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.img
+            key={p.character ?? 'back'}
+            className="portrait"
+            src={characterImage(p.character)}
+            alt={c ? c.name : 'Personnage caché'}
+            initial={{ rotateY: -90 }}
+            animate={{ rotateY: 0 }}
+            exit={{ rotateY: 90 }}
+            transition={{ duration: 0.28 }}
+          />
+        </AnimatePresence>
+        {!p.alive && <span className="death-stamp" aria-hidden>☠︎</span>}
+      </div>
       <div style={{ minWidth: 0 }}>
         <div className="name" title={p.name}>
           <span className="seat-num">{p.id + 1}</span>
@@ -69,7 +92,11 @@ export function PlayerMat({ player: p, seat, me, active, deciding, selectable, n
             </span>
           )}
         </div>
-        {hp && <div className="hp-bar"><div style={{ width: `${Math.min(100, (p.damage / hp) * 100)}%` }} /></div>}
+        {hp && (
+          <div className="hp-bar">
+            <motion.div animate={{ width: `${Math.min(100, (p.damage / hp) * 100)}%` }} transition={{ duration: 0.5, ease: 'easeOut' }} />
+          </div>
+        )}
         {p.equipment.length > 0 && (
           <div className="equip">
             {p.equipment.map((e) => <EquipChip key={e} card={e} />)}

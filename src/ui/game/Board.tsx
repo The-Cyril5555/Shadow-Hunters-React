@@ -1,5 +1,6 @@
 import { LayoutGroup, motion } from 'motion/react';
 import { AREAS, type AreaId, type PlayerView } from '../../engine';
+import { useFx } from '../fx';
 import { areaImage, playerColor } from '../theme';
 
 interface Props {
@@ -16,6 +17,9 @@ const ZONE_NAMES = ['I', 'II', 'III'];
 export function Board({ view, selectableAreas, selectableTargets, onArea, onTarget, reducedMotion }: Props) {
   const me = view.me;
   const myArea = me !== null ? view.players[me].area : null;
+  const areaFx = useFx((s) => s.areaFx);
+  const pulses = useFx((s) => s.pulses);
+  const active = view.turn.active;
   return (
     <LayoutGroup>
       <div className="board">
@@ -29,7 +33,8 @@ export function Board({ view, selectableAreas, selectableTargets, onArea, onTarg
               return (
                 <div
                   key={a}
-                  className={`area${selectable ? ' selectable' : ''}${myArea === a ? ' here' : ''}`}
+                  id={`area-${a}`}
+                  className={`area${selectable ? ' selectable' : ''}${myArea === a ? ' here' : ''}${areaFx[a] ? ` fx-${areaFx[a]}` : ''}`}
                   title={`${def.name} (${def.numbers.join('-')}) : ${def.text}`}
                   onClick={selectable ? () => onArea(a) : undefined}
                   role={selectable ? 'button' : undefined}
@@ -45,10 +50,11 @@ export function Board({ view, selectableAreas, selectableTargets, onArea, onTarg
                       return (
                         <motion.div
                           key={p.id}
+                          id={`token-${p.id}`}
                           layoutId={`token-${p.id}`}
                           layout={!reducedMotion}
-                          transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-                          className={`token${p.id === me ? ' me' : ''}${sel ? ' selectable' : ''}`}
+                          transition={{ type: 'spring', stiffness: 170, damping: 22 }}
+                          className={`token${p.id === me ? ' me' : ''}${sel ? ' selectable' : ''}${p.id === active && !view.finished ? ' active' : ''}${pulses[p.id] ? ` fx-${pulses[p.id]}` : ''}`}
                           style={{ ['--pc' as string]: playerColor(p.id) }}
                           title={p.name}
                           onClick={sel ? (e) => { e.stopPropagation(); onTarget(p.id); } : undefined}

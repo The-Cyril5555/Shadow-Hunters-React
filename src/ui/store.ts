@@ -40,8 +40,6 @@ interface UiState {
   seats: SeatInfo[];
   view: PlayerView | null;
   log: VisibleEvent[];
-  /** Les effets visuels ne rejouent que les événements après ce numéro. */
-  fxFrom: number;
   error: string | null;
   busy: string | null;
   notes: Record<number, Note>;
@@ -63,7 +61,6 @@ export const useStore = create<UiState>((set, get) => ({
   seats: [],
   view: null,
   log: [],
-  fxFrom: 0,
   error: null,
   busy: null,
   notes: {},
